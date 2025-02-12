@@ -131,6 +131,9 @@ else
     echo "${RED}psql não está instalado. Conexão ao banco de dados não pode ser testada.${NC}"
 fi
 
+
+BUILD_VERSION=$(./build_version.sh "$jar_filename")
+
 # Executa instalação com o Docker Compose correto
 if $use_external_db; then
     jdbc_url="jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?ssl=true&sslmode=allow&sslfactory=org.postgresql.ssl.NonValidatingFactory"
@@ -138,7 +141,8 @@ if $use_external_db; then
     docker compose --progress plain -f docker-compose.external-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
-        --build-arg DB_URL=$jdbc_url
+        --build-arg DB_URL=$jdbc_url \
+        --build-arg VERSION="$BUILD-VERSION"
     docker compose -f docker-compose.external-db.yml up -d
 else
     jdbc_url="jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
@@ -147,10 +151,12 @@ else
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg TRAINING=$training"
+        --build-arg TRAINING=$training" \
+        --build-arg VERSION="$BUILD-VERSION"
     docker compose --progress plain -f docker-compose.local-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg TRAINING=$training
+        --build-arg TRAINING=$training \
+        --build-arg VERSION="$BUILD-VERSION"
     docker compose -f docker-compose.local-db.yml up -d
 fi

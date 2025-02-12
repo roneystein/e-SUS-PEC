@@ -12,6 +12,8 @@ services:
       dockerfile: Dockerfile
       args:
         - TZ=${TZ}
+      tags:
+        - ${VERSION:-latest}
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASS=${POSTGRES_PASS:-pass}

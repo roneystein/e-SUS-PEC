@@ -14,6 +14,8 @@ services:
         - POSTGRES_USER=${POSTGRES_USER}
         - POSTGRES_PASS=${POSTGRES_PASS}
         - HTTPS_DOMAIN=${HTTPS_DOMAIN}
+      tags:
+        - ${VERSION:-latest}
     stdin_open: true
     tty: true
     ports:

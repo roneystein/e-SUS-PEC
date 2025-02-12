@@ -62,6 +62,7 @@ ARG DB_URL
 ARG POSTGRES_PASS
 ARG POSTGRES_USER
 ARG TRAINING
+ARG TZ
 
 # Promovendo ARGS para ENV para uso no install.sh que roda dentro do entrypoint.sh e precisa dessas variáveis
 ENV JAR_FILENAME=${JAR_FILENAME}
@@ -70,6 +71,7 @@ ENV DB_URL=${DB_URL}
 ENV POSTGRES_PASS=${POSTGRES_PASS}
 ENV POSTGRES_USER=${POSTGRES_USER}
 ENV HTTPS_DOMAIN=${HTTPS_DOMAIN}
+ENV TZ=${TZ}
 
 # criando diretórios para uso posterior
 RUN mkdir -p /opt/e-SUS/webserver/chaves

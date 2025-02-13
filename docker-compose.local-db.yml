@@ -3,6 +3,7 @@ services:
     container_name: pec
     platform: linux/amd64
     restart: unless-stopped
+    env_file: .env
     volumes:
       - ./esus-data/opt:/opt/e-SUS
       - ./esus-data/backups:/backups

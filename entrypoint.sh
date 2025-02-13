@@ -47,5 +47,18 @@ if [ -f "/etc/pec.config" ]; then
   fi
 fi
 
+# Altera configuração JVM
+# O parâmetro mais à direita será utilizado pela JVM (-XX:+PrintFlagsFinal)
+if [ -n "$JAVA_MEM_OPTS" ]; then
+  if [ -f "/opt/e-SUS/webserver/standalone.sh" ]; then
+    if ! grep JAVA_MEM_OPTS /opt/e-SUS/webserver/standalone.sh >/dev/null ; then
+      cp "/opt/e-SUS/webserver/standalone.sh" "/opt/e-SUS/webserver/standalone.sh.original"
+      mawk 'FNR==NR{ if (/^JAVA_OPTS/) p=NR; next} 1; FNR==p{ print "JAVA_OPTS=\"$JAVA_OPTS $JAVA_MEM_OPTS\"" }' \
+        /opt/e-SUS/webserver/standalone.sh.original /opt/e-SUS/webserver/standalone.sh.original \
+        > /opt/e-SUS/webserver/standalone.sh
+    fi
+  fi
+fi
+
 echo ">> Iniciando aplicação principal..."
 exec /opt/e-SUS/webserver/standalone.sh

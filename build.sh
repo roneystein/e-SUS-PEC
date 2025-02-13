@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Definição de cores
 GREEN='\033[0;32m'
@@ -59,24 +59,26 @@ export COMPOSE_HTTP_TIMEOUT=8000
 # Carrega variáveis de ambiente do .env
 echo "Carregando variáveis de .env..."
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    . .env
+    set +a
     filename=${filename:-$FILENAME}
     https_domain=${https_domain:-$HTTPS_DOMAIN}
-    echo "${GREEN}Arquivo .env carregado com sucesso.${NC}"
+    echo -e "${GREEN}Arquivo .env carregado com sucesso.${NC}"
 else
-    echo "${RED}Arquivo .env não encontrado.${NC}"
+    echo -e "${RED}Arquivo .env não encontrado.${NC}"
     exit 1
 fi
 
 # Busca o link do arquivo JAR, caso não especificado
 if [ -z "$filename" ]; then
-    echo "${GREEN}Buscando link de instalação na página do PEC...${NC}"
+    echo -e "${GREEN}Buscando link de instalação na página do PEC...${NC}"
     PAGE_URL="https://sisaps.saude.gov.br/esus/"
     HTML_CONTENT=$(curl -s "$PAGE_URL")
     DOWNLOAD_URL=$(echo "$HTML_CONTENT" | grep -o 'href="[^"]*Linux[^"]*' | sed 's/href="//' | head -1)
 
     if [ -z "$DOWNLOAD_URL" ]; then
-        echo "${RED}Erro: Link para download não encontrado.${NC}"
+        echo -e "${RED}Erro: Link para download não encontrado.${NC}"
         exit 1
     fi
 
@@ -88,7 +90,7 @@ if [ -z "$filename" ]; then
             ;;
     esac
 
-    echo "${GREEN}Link para download encontrado: $DOWNLOAD_URL${NC}"
+    echo -e "${GREEN}Link para download encontrado: $DOWNLOAD_URL${NC}"
     filename="$DOWNLOAD_URL"
 fi
 
@@ -101,14 +103,14 @@ if echo "$filename" | grep -q '^https://'; then
     else
         echo "Baixando o arquivo $jar_filename..."
         wget -O "$save_path" "$filename"
-        echo "${GREEN}Download concluído.${NC}"
+        echo -e "${GREEN}Download concluído.${NC}"
     fi
 else
     jar_filename="$filename"
 fi
 
 # Exibe mensagem de instalação
-echo "${GREEN}Instalando e-SUS-PEC com o arquivo $jar_filename...${NC}"
+echo -e "${GREEN}Instalando e-SUS-PEC com o arquivo $jar_filename...${NC}"
 docker compose -f docker-compose.local-db.yml down --volumes --remove-orphans
 docker compose -f docker-compose.external-db.yml down --volumes --remove-orphans
 
@@ -119,16 +121,16 @@ if command -v psql > /dev/null; then
         echo "Testando conexão com o banco de dados externo em $POSTGRES_HOST..."
         POSTGRES_HOST_FOR_TEST=$([ "$POSTGRES_HOST" = "host.docker.internal" ] && echo "localhost" || echo "$POSTGRES_HOST")
         if PGPASSWORD=$POSTGRES_PASS psql -h $POSTGRES_HOST_FOR_TEST -U $POSTGRES_USER -p $POSTGRES_PORT -d $POSTGRES_DB -c '\q'; then
-            echo "${GREEN}Conexão ao banco de dados externa bem-sucedida.${NC}"
+            echo -e "${GREEN}Conexão ao banco de dados externa bem-sucedida.${NC}"
         else
-            echo "${RED}Falha ao conectar ao banco de dados externo. Verifique as credenciais.${NC}"
+            echo -e "${RED}Falha ao conectar ao banco de dados externo. Verifique as credenciais.${NC}"
             exit 1
         fi
     else
         echo "Sem banco de dados externo fornecido."
     fi
 else
-    echo "${RED}psql não está instalado. Conexão ao banco de dados não pode ser testada.${NC}"
+    echo -e "${RED}psql não está instalado. Conexão ao banco de dados não pode ser testada.${NC}"
 fi
 
 
@@ -137,26 +139,26 @@ BUILD_VERSION=$(./build_version.sh "$jar_filename")
 # Executa instalação com o Docker Compose correto
 if $use_external_db; then
     jdbc_url="jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB?ssl=true&sslmode=allow&sslfactory=org.postgresql.ssl.NonValidatingFactory"
-    echo "\n${GREEN}Construindo e subindo Docker com banco de dados externo...${NC}"
+    echo -e "\n${GREEN}Construindo e subindo Docker com banco de dados externo...${NC}"
     docker compose --progress plain -f docker-compose.external-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg VERSION="$BUILD-VERSION"
+        --build-arg VERSION="$BUILD_VERSION"
     docker compose -f docker-compose.external-db.yml up -d
 else
     jdbc_url="jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-    echo "\n${GREEN}Construindo e subindo Docker com banco de dados local...${NC}"
+    echo -e "\n${GREEN}Construindo e subindo Docker com banco de dados local...${NC}"
     echo "docker compose --progress plain -f docker-compose.local-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg TRAINING=$training" \
-        --build-arg VERSION="$BUILD-VERSION"
+        --build-arg TRAINING=$training \
+        --build-arg VERSION=\"$BUILD-VERSION\""
     docker compose --progress plain -f docker-compose.local-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg DB_URL=$jdbc_url \
         --build-arg TRAINING=$training \
-        --build-arg VERSION="$BUILD-VERSION"
+        --build-arg VERSION="$BUILD_VERSION"
     docker compose -f docker-compose.local-db.yml up -d
 fi

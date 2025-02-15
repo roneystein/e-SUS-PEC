@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
+#
+# Verifica disponibilidade de nova versão e atualiza
+#
+
 
 # Obter a versão mais recente
 PAGE_URL="https://sisaps.saude.gov.br/esus/"
@@ -37,11 +41,34 @@ fi
 
 # Verificar a versao em execucao
 RUNNING_VERSION=$(docker compose -f "$DOCKER_COMPOSE_FILE" exec pec bash -c "cat /etc/pec.config | jq .version -r" )
+if [ -z "$RUNNING_VERSION" ]; then
+  echo "Não foi possível determinar a versão em execução."
+  exit 1
+fi
 echo "Versao em execucao: $RUNNING_VERSION"
+
+# Se production mode então consideramos database externo
+PRODUCTION_MODE=$(docker compose -f "$DOCKER_COMPOSE_FILE" exec pec bash -c "cat /etc/pec.config | jq .production -r" )
+if [ -z "$PRODUCTION_MODE" ]; then
+  echo "Não foi possível determinar o modo de operação."
+  exit 1
+fi
+
+BUILD_ARGS=""
+if [ "$PRODUCTION_MODE" == "true" ] ; then
+  BUILD_ARGS="$BUILD_ARGS -p -e"
+fi
 
 if [[ $NEW_VERSION != "$RUNNING_VERSION" ]]
   then
     echo "Parando PEC para atualização."
-    docker compose -f "$DOCKER_COMPOSE_FILE" down
-    ./build -f "$DOWNLOAD_URL"
+
+    # Se estiver gerenciado pelo Systemd
+    if systemctl list-unit-files esuspec.service &>/dev/null ; then
+      sudo systemctl stop esuspec.service
+    else
+      docker compose -f "$DOCKER_COMPOSE_FILE" down
+    fi
+    
+    ./build.sh -f "$DOWNLOAD_URL" $BUILD_ARGS
 fi

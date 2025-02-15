@@ -29,7 +29,7 @@ RUN sed -i 's/# deb/deb/g' /etc/apt/sources.list
 # Instalações para uso do cron e configurações para utilização do systemd
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-    dbus systemd systemd-cron rsyslog iproute2 python-is-python3 python3 python3-apt sudo bash ca-certificates && \
+    dbus systemd systemd-cron rsyslog iproute2 python-is-python3 python3 python3-apt sudo bash ca-certificates jq && \
     apt-get clean && \
     rm -rf /usr/share/doc/* /usr/share/man/* /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

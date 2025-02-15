@@ -145,7 +145,15 @@ if $use_external_db; then
         --build-arg HTTPS_DOMAIN=$https_domain \
         --build-arg DB_URL=$jdbc_url \
         --build-arg VERSION="$BUILD_VERSION"
-    docker compose -f docker-compose.external-db.yml up -d
+
+    # Se estiver gerenciado pelo Systemd
+    if systemctl list-unit-files esuspec.service &>/dev/null ; then
+        echo -e "Iniciando via Systemd..."
+        sudo systemctl start esuspec.service
+    else
+        docker compose -f docker-compose.external-db.yml up -d
+    fi
+    
 else
     jdbc_url="jdbc:postgresql://$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
     echo -e "\n${GREEN}Construindo e subindo Docker com banco de dados local...${NC}"
@@ -160,5 +168,13 @@ else
         --build-arg DB_URL=$jdbc_url \
         --build-arg TRAINING=$training \
         --build-arg VERSION="$BUILD_VERSION"
-    docker compose -f docker-compose.local-db.yml up -d
+
+    # Se estiver gerenciado pelo Systemd
+    if systemctl list-unit-files esuspec.service &>/dev/null ; then
+        echo -e "Iniciando via Systemd..."
+        sudo systemctl start esuspec.service
+    else
+        docker compose -f docker-compose.local-db.yml up -d
+    fi
+
 fi

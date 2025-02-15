@@ -65,10 +65,12 @@ if [[ $NEW_VERSION != "$RUNNING_VERSION" ]]
 
     # Se estiver gerenciado pelo Systemd
     if systemctl list-unit-files esuspec.service &>/dev/null ; then
+      echo "Parando via systemd..."
       sudo systemctl stop esuspec.service
     else
       docker compose -f "$DOCKER_COMPOSE_FILE" down
     fi
-    
+    echo "Iniciando build com: "
+    echo "./build.sh -f $DOWNLOAD_URL $BUILD_ARGS"
     ./build.sh -f "$DOWNLOAD_URL" $BUILD_ARGS
 fi

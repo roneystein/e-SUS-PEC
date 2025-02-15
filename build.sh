@@ -135,6 +135,13 @@ fi
 
 
 BUILD_VERSION=$(./build_version.sh "$jar_filename")
+BUILD_VERSION="latest"
+
+VERSION_REGEX=".*-([0-9]+\.[0-9]+\.[0-9]+)-.*"
+if [[ $jar_filename =~ $VERSION_REGEX ]] ; then
+  BUILD_VERSION="${BASH_REMATCH[1]}"
+fi
+export BUILD_VERSION
 
 # Executa instalação com o Docker Compose correto
 if $use_external_db; then
@@ -143,8 +150,7 @@ if $use_external_db; then
     docker compose --progress plain -f docker-compose.external-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
-        --build-arg DB_URL=$jdbc_url \
-        --build-arg VERSION="$BUILD_VERSION"
+        --build-arg DB_URL=$jdbc_url
 
     # Se estiver gerenciado pelo Systemd
     if systemctl list-unit-files esuspec.service &>/dev/null ; then
@@ -161,13 +167,11 @@ else
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg HTTPS_DOMAIN=$https_domain \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg TRAINING=$training \
-        --build-arg VERSION=\"$BUILD-VERSION\""
+        --build-arg TRAINING=$training"
     docker compose --progress plain -f docker-compose.local-db.yml build $cache \
         --build-arg JAR_FILENAME=$jar_filename \
         --build-arg DB_URL=$jdbc_url \
-        --build-arg TRAINING=$training \
-        --build-arg VERSION="$BUILD_VERSION"
+        --build-arg TRAINING=$training
 
     # Se estiver gerenciado pelo Systemd
     if systemctl list-unit-files esuspec.service &>/dev/null ; then

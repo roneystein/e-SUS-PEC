@@ -62,6 +62,7 @@ if [ -n "$TRAINING" ]; then
   eval $PSQL_CMD
   if [ $? -eq 0 ]; then
     echo -e "${GREEN}Configuração de treinamento aplicada com sucesso.${NC}"
+    echo true > /etc/pec_training
   else
     echo -e "${RED}Erro ao aplicar configuração de treinamento.${NC}"
   fi

@@ -20,7 +20,7 @@ if [ "$1" = "--help" ]; then
     Uso: build.sh [-f <nome do arquivo ou URL>] [-h <domínio HTTPS>] [-c] [-p] [-e]
 
     -f {nome do arquivo ou URL} para especificar o arquivo JAR a ser utilizado (busca o último se não informado)
-    -c para utilizar cache ao construir as imagens Docker
+    -c para não utilizar cache ao construir as imagens Docker
     -h {domínio HTTPS} para gerar o certificado
     -p para instalar em ambiente de produção
     -e para utilizar banco de dados externo especificado em .env
@@ -34,7 +34,7 @@ while getopts "d:f:h:cpe" flag; do
         f) filename=${OPTARG} ;;
         h) https_domain=${OPTARG} ;;
         c) cache='--no-cache' ;;
-        p) production=false ;;
+        p) production=true ;;
         e) use_external_db=true ;;
         \?)
             echo "${RED}Opção inválida! Utilize --help para ajuda.${NC}"
@@ -134,7 +134,6 @@ else
 fi
 
 
-BUILD_VERSION=$(./build_version.sh "$jar_filename")
 BUILD_VERSION="latest"
 
 VERSION_REGEX=".*-([0-9]+\.[0-9]+\.[0-9]+)-.*"

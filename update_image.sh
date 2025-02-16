@@ -48,7 +48,7 @@ fi
 echo "Versao em execucao: $RUNNING_VERSION"
 
 # Se production mode então consideramos database externo
-PRODUCTION_MODE=$(docker compose -f "$DOCKER_COMPOSE_FILE" exec pec bash -c "cat /etc/pec.config | jq .production -r" )
+PRODUCTION_MODE=$(docker compose -f "$DOCKER_COMPOSE_FILE" exec pec bash -c "cat /etc/pec_training" )
 if [ -z "$PRODUCTION_MODE" ]; then
   echo "Não foi possível determinar o modo de operação."
   exit 1

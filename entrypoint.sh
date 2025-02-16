@@ -33,11 +33,7 @@ if [ -f "/etc/pec.config" ]; then
   
   # Verifica se a instalação foi bem-sucedida
   # Se a instalação foi bem-sucedida, o campo "success" deve ser true
-  if echo "$config" | grep -q "\"success\" : true"; then
-    # Inicie a aplicação principal
-    echo ">> Iniciando aplicação principal..."
-    exec /opt/e-SUS/webserver/standalone.sh
-  else
+  if ! echo "$config" | grep -q "\"success\" : true"; then
     # Se a instalação não foi bem-sucedida, exiba uma mensagem de erro
     echo ">> Erro: Instalação não foi bem-sucedida."
     echo ">> Tentando reinstalar sistema..."
